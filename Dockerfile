@@ -17,8 +17,8 @@ COPY . /root/vial-web
 
 WORKDIR /root/vial-web
 
-RUN git clone https://github.com/vial-kb/vial-gui.git
-RUN git clone https://github.com/vial-kb/via-keymap-precompiled.git
+# RUN git clone https://github.com/vial-kb/vial-gui.git
+# RUN git clone https://github.com/vial-kb/via-keymap-precompiled.git
 
 RUN echo 'source "/root/vial-web/emsdk/emsdk_env.sh"' >> $HOME/.bash_profile
 
