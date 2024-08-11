@@ -13,39 +13,11 @@ RUN apt-get install -y gdb lcov pkg-config \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 20 && \
   update-alternatives --config python
 
-COPY . /root/vial-web
+RUN apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+RUN echo 'root:password' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
-WORKDIR /root/vial-web
-
-# RUN git clone https://github.com/vial-kb/vial-gui.git
-# RUN git clone https://github.com/vial-kb/via-keymap-precompiled.git
-
-RUN echo 'source "/root/vial-web/emsdk/emsdk_env.sh"' >> $HOME/.bash_profile
-
-RUN sed -i 's/\r$//' ./version.sh
-RUN chmod +x ./version.sh
-
-RUN sed -i 's/\r$//' ./fetch-emsdk.sh
-RUN chmod +x ./fetch-emsdk.sh
-RUN ./fetch-emsdk.sh
-
-RUN sed -i 's/\r$//' ./fetch-deps.sh
-RUN chmod +x ./fetch-deps.sh
-RUN ./fetch-deps.sh
-
-RUN sed -i 's/\r$//' ./build-deps.sh
-RUN chmod +x ./build-deps.sh
-RUN ./build-deps.sh
-
-WORKDIR /root/vial-web/src
-
-RUN sed -i 's/\r$//' ./build.sh
-RUN chmod +x ./build.sh
-RUN ./build.sh
-
-COPY ./http-server-cors.py /root/vial-web/src/build/http-server-cors.py
-
-WORKDIR /root/vial-web/src/build
-
-CMD ["/usr/bin/python", "http-server-cors.py"]
-EXPOSE 8000
+EXPOSE 22
+ENTRYPOINT service ssh start && bash
