@@ -116,8 +116,6 @@
         }
 
         function my_onmessage(e) {
-            console.log(e.data);
-
             if (e.data.cmd == "write_device") {
                 g_device.sendReport(0, new Uint8Array(e.data.data));
                 g_read_timeout = setTimeout(read_timeout, 500);
@@ -171,25 +169,33 @@
                 return;
             }
 
-            const [fileHandle] = await window.showOpenFilePicker(FILE_OPTIONS);
+            const [handle] = await window.showOpenFilePicker(FILE_OPTIONS);
 
-            if (!fileHandle) {
+            if (!handle) {
                 return;
             }
 
-            const file = await fileHandle.getFile();
+            const file = await handle.getFile();
             const layout = await file.text();
-            console.log("loaded layout from file");
-            _vialglue_layout_loaded(allocateUTF8(layout));
+
+            PThread.runningWorkers[0].postMessage({
+                cmd: "py",
+                payload: `import webmain;webmain.window.on_layout_loaded(b${JSON.stringify(layout)})`,
+            });
         }
 
         async function saveLayout(layout) {
             if (window.showSaveFilePicker) {
-                const newHandle = await window.showSaveFilePicker(FILE_OPTIONS);
-                const writableStream = await newHandle.createWritable();
-                await writableStream.write(layout);
-                await writableStream.close();
+                // This shows a file chooser dialog. It's a nicer experience
+                // if available, allowing the user to select a target
+                // filename and directory.
+                const handle = await window.showSaveFilePicker(FILE_OPTIONS);
+                const stream = await handle.createWritable();
+                await stream.write(layout);
+                await stream.close();
             } else {
+                // If the File System API isn't available, we can at least
+                // trigger a simple download with a hardcoded filename.
                 const download = document.createElement('a');
                 download.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(layout));
                 download.setAttribute('download', 'layout.vil');
