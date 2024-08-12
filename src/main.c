@@ -85,6 +85,27 @@ void vialglue_set_device_desc(const char *s) {
     g_device_desc = s;
 }
 
+void vialglue_layout_loaded(const char *layout) {
+    // printf("vialglue_layout_loaded\n");
+    // printf("Layout of size %ld loaded\n", strlen(layout));
+    // printf("%s\n", layout);
+    // printf("TODO: Send the layout to the app\n");
+
+    PyRun_SimpleString("print(qtApp)");
+
+    // PyRun_SimpleString(
+    //     "from importlib import abc, machinery \n" \
+    //     "import sys\n" \
+    //     "\n" \
+    //     "class Finder(abc.MetaPathFinder):\n" \
+    //     "    def find_spec(self, fullname, path, target=None):\n" \
+    //     "        if fullname in sys.builtin_module_names:\n" \
+    //     "            return machinery.ModuleSpec(fullname, machinery.BuiltinImporter)\n" \
+    //     "\n" \
+    //     "sys.meta_path.append(Finder())\n" \
+    // );
+}
+
 static PyObject * vialglue_unlock_start(PyObject *self, PyObject *args) {
     const uint8_t *data;
     Py_ssize_t size;
@@ -133,6 +154,14 @@ static PyObject* vialglue_get_device_desc(PyObject *self, PyObject *args) {
     return PyUnicode_FromString(g_device_desc);
 }
 
+static PyObject * vialglue_load_layout(PyObject *self, PyObject *args) {
+    EM_ASM({
+        postMessage({cmd: "load_layout"});
+    });
+
+    return PyLong_FromLong(0);
+}
+
 static PyObject * vialglue_save_layout(PyObject *self, PyObject *args) {
     const uint8_t *data;
 
@@ -167,6 +196,7 @@ static PyMethodDef VialglueMethods[] = {
     {"unlock_done",  vialglue_unlock_done, METH_VARARGS, ""},
     {"notify_ready",  vialglue_notify_ready, METH_VARARGS, ""},
     {"get_device_desc",  vialglue_get_device_desc, METH_VARARGS, ""},
+    {"load_layout",  vialglue_load_layout, METH_VARARGS, ""},
     {"save_layout",  vialglue_save_layout, METH_VARARGS, ""},
     {"fatal_error",  vialglue_fatal_error, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}
@@ -211,6 +241,8 @@ int main(int argc, char **argv) {
     );
 
     PyRun_SimpleString("from PyQt5.QtWidgets import QApplication\nqtApp = QApplication([\"pyodide\"])\n");
+
+    PyRun_SimpleString("print(qtApp)");
 
     EM_ASM({
         postMessage({cmd: "notify_alive"});

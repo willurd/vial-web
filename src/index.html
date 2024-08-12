@@ -145,9 +145,53 @@
                 document.getElementById("startup").style.display = "none";
             } else if (e.data.cmd == "notify_alive") {
                 document.getElementById("startup_btn").disabled = false;
+            } else if (e.data.cmd == "load_layout") {
+                loadLayout();
             } else if (e.data.cmd == "save_layout") {
+                saveLayout(e.data.layout);
+            } else if (e.data.cmd == "fatal_error") {
+                alert(e.data.msg);
+            }
+        }
+
+        const FILE_OPTIONS = {
+            types: [
+                {
+                    description: "Vial layout",
+                    accept: { "application/json": [".vil"] },
+                },
+            ],
+            excludeAcceptAllOption: false,
+            multiple: false,
+        };
+
+        async function loadLayout() {
+            if (!window.showOpenFilePicker) {
+                alert("File loading API unavailable. Please use a newer browser.");
+                return;
+            }
+
+            const [fileHandle] = await window.showOpenFilePicker(FILE_OPTIONS);
+
+            if (!fileHandle) {
+                return;
+            }
+
+            const file = await fileHandle.getFile();
+            const layout = await file.text();
+            console.log("loaded layout from file");
+            _vialglue_layout_loaded(allocateUTF8(layout));
+        }
+
+        async function saveLayout(layout) {
+            if (window.showSaveFilePicker) {
+                const newHandle = await window.showSaveFilePicker(FILE_OPTIONS);
+                const writableStream = await newHandle.createWritable();
+                await writableStream.write(layout);
+                await writableStream.close();
+            } else {
                 const download = document.createElement('a');
-                download.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(e.data.layout));
+                download.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(layout));
                 download.setAttribute('download', 'layout.vil');
 
                 if (document.createEvent) {
@@ -157,8 +201,6 @@
                 } else {
                     download.click();
                 }
-            } else if (e.data.cmd == "fatal_error") {
-                alert(e.data.msg);
             }
         }
 
