@@ -10,7 +10,7 @@ source ./emsdk/emsdk_env.sh
 embuilder build zlib bzip2
 
 rm -rf deps
-mkdir deps && cd deps
+mkdir -p deps && cd deps
 
 tar xvf ../sources/xz-${XZ_VER}.tar.gz
 pushd xz-${XZ_VER}
@@ -26,6 +26,8 @@ mkdir -p builddir/build
 pushd builddir/build
 ../../configure -C
 make -j$(nproc)
+mv Python PythonSource
+cp python.exe python
 popd
 
 mkdir -p builddir/emscripten-browser

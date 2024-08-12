@@ -133,6 +133,27 @@ static PyObject* vialglue_get_device_desc(PyObject *self, PyObject *args) {
     return PyUnicode_FromString(g_device_desc);
 }
 
+static PyObject * vialglue_load_layout(PyObject *self, PyObject *args) {
+    EM_ASM({
+        postMessage({cmd: "load_layout"});
+    });
+
+    return PyLong_FromLong(0);
+}
+
+static PyObject * vialglue_save_layout(PyObject *self, PyObject *args) {
+    const uint8_t *data;
+
+    if (!PyArg_ParseTuple(args, "y", &data))
+        return NULL;
+
+    EM_ASM({
+        postMessage({cmd: "save_layout", layout: UTF8ToString($0)});
+    }, data);
+
+    return PyLong_FromLong(0);
+}
+
 static PyObject* vialglue_fatal_error(PyObject *self, PyObject *args) {
     const char *msg;
 
@@ -154,6 +175,8 @@ static PyMethodDef VialglueMethods[] = {
     {"unlock_done",  vialglue_unlock_done, METH_VARARGS, ""},
     {"notify_ready",  vialglue_notify_ready, METH_VARARGS, ""},
     {"get_device_desc",  vialglue_get_device_desc, METH_VARARGS, ""},
+    {"load_layout",  vialglue_load_layout, METH_VARARGS, ""},
+    {"save_layout",  vialglue_save_layout, METH_VARARGS, ""},
     {"fatal_error",  vialglue_fatal_error, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}
 };
