@@ -51,6 +51,8 @@ sed -i 's/\r$//' ./build-deps.sh
 chmod +x ./build-deps.sh
 ./build-deps.sh
 
+git config --add safe.directory '*'
+
 cd src
 sed -i 's/\r$//' ./build.sh
 chmod +x ./build.sh
@@ -58,7 +60,8 @@ chmod +x ./build.sh
 
 # Run the web server:
 cp http-server-cors.py src/build
-python src/build/http-server-cors.py &
+cd src/build
+python http-server-cors.py &
 cd ../..
 
 # After every change:
